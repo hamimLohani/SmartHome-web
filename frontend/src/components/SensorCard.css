@@ -1,0 +1,30 @@
+/* Sensor Card Styles */
+.sensor-card-widget {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: all var(--transition-base);
+}
+.sensor-card-widget:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.sensor-card-widget.warning { border-color: var(--warning); background: var(--warning-bg); }
+.sensor-card-widget.danger { border-color: var(--danger); background: var(--danger-bg); animation: emergency-flash 1.5s infinite; }
+
+.sensor-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.sensor-card-icon { font-size: 28px; }
+.sensor-card-info { flex: 1; }
+.sensor-card-name { display: block; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.sensor-card-room { font-size: 12px; color: var(--text-tertiary); }
+
+.sensor-card-value-area { display: flex; align-items: baseline; gap: 4px; margin-bottom: 12px; }
+.sensor-card-value { font-size: 36px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+.sensor-card-value.warning { color: var(--warning); }
+.sensor-card-value.danger { color: var(--danger); }
+.sensor-card-unit { font-size: 16px; color: var(--text-secondary); font-weight: 500; }
+
+.sensor-card-bar { height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+.sensor-card-bar-fill { height: 100%; border-radius: 2px; background: var(--success); transition: width 0.5s ease; }
+.sensor-card-bar-fill.warning { background: var(--warning); }
+.sensor-card-bar-fill.danger { background: var(--danger); }
+
+.sensor-card-time { font-size: 11px; color: var(--text-tertiary); }

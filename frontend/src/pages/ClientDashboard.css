@@ -1,0 +1,123 @@
+/* ═══════════════════════════════════════════════════════════
+   CLIENT DASHBOARD STYLES
+   ═══════════════════════════════════════════════════════════ */
+
+/* Setup Wizard Steps */
+.setup-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.setup-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all var(--transition-base);
+}
+
+.setup-step.active {
+  background: linear-gradient(135deg, var(--primary), #6366f1);
+  color: white;
+}
+
+.setup-step.done {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.setup-step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.15);
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* Room chips */
+.room-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.room-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+/* Device Control Panel */
+.device-control-panel {
+  padding: 4px 0;
+}
+
+.device-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-tertiary);
+  outline: none;
+  cursor: pointer;
+}
+
+.device-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), #6366f1);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
+  transition: transform 0.15s;
+}
+
+.device-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.sensor-display {
+  text-align: center;
+  padding: 24px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-lg);
+}
+
+.sensor-big-value {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.sensor-unit {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .setup-steps {
+    flex-wrap: wrap;
+  }
+  .setup-step span:not(.setup-step-number) {
+    display: none;
+  }
+}

@@ -1,0 +1,209 @@
+/* ═══════════════════════════════════════════════════════════
+   HOUSE MAP CANVAS STYLES
+   ═══════════════════════════════════════════════════════════ */
+
+.house-map-canvas {
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: auto;
+  cursor: default;
+}
+
+.canvas-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border-light) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.canvas-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* Room Block */
+.map-room {
+  position: absolute;
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
+  padding: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.map-room:hover {
+  box-shadow: var(--shadow-lg);
+  z-index: 3;
+}
+
+.map-room.dragging {
+  opacity: 0.85;
+  box-shadow: var(--shadow-xl);
+  z-index: 10;
+  cursor: grabbing;
+}
+
+.map-room-label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 6px;
+}
+
+.map-room-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.map-room-type {
+  font-size: 10px;
+  color: #64748b;
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+/* ESP32 Board Indicator */
+.map-board-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 10px;
+  width: fit-content;
+}
+
+.map-board-label {
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Devices grid */
+.map-devices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
+}
+
+.map-device {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 44px;
+}
+
+.map-device:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: scale(1.05);
+}
+
+.map-device.active {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 8px var(--active-color, #fbbf24);
+  border-color: var(--active-color, #fbbf24);
+}
+
+.map-device.spinning .map-device-icon {
+  animation: spin-fan 1.2s linear infinite;
+}
+
+.map-device-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.map-device-name {
+  font-size: 8px;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  max-width: 52px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-device-value {
+  font-size: 9px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Resize handle */
+.map-room-resize {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.15) 50%);
+  border-radius: 0 0 var(--radius-md) 0;
+}
+
+[data-theme="dark"] .map-room {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .map-room-name {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .map-room-type {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .map-device {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .map-device:hover {
+  background: rgba(30, 41, 59, 0.9);
+}
+
+[data-theme="dark"] .map-device-name {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .map-device-value {
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .map-board-indicator {
+  background: rgba(30, 41, 59, 0.7);
+}
+
+[data-theme="dark"] .map-board-label {
+  color: #94a3b8;
+}
