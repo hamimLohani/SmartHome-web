@@ -11,12 +11,12 @@ let transporter = null;
  * Initialize the email transporter
  */
 function initMailer() {
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
+  const user = process.env.GMAIL_USER || process.env.MAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD || process.env.MAIL_PASS;
 
   if (!user || !pass) {
     console.warn('⚠️  Gmail credentials not configured. Email features disabled.');
-    console.warn('   Set GMAIL_USER and GMAIL_APP_PASSWORD in your .env file.');
+    console.warn('   Set GMAIL_USER/MAIL_USER and GMAIL_APP_PASSWORD/MAIL_PASS in your .env file.');
     return;
   }
 
@@ -40,7 +40,7 @@ function initMailer() {
  */
 async function sendVerificationEmail(toEmail, name, token) {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const verifyUrl = `${frontendUrl}/verify-email?token=${token}`;
+  const verifyUrl = `${frontendUrl}/verify?token=${token}`;
 
   const html = `
     <div style="font-family: 'Inter', -apple-system, sans-serif; max-width: 600px; margin: 0 auto; background: #0f172a; color: #e2e8f0; border-radius: 16px; overflow: hidden;">
@@ -200,8 +200,9 @@ async function sendMail(to, subject, html) {
   }
 
   try {
+    const fromAddress = process.env.MAIL_FROM || `"Smart Home" <${process.env.GMAIL_USER || process.env.MAIL_USER}>`;
     const info = await transporter.sendMail({
-      from: `"Smart Home" <${process.env.GMAIL_USER}>`,
+      from: fromAddress,
       to,
       subject,
       html,

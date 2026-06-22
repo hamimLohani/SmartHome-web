@@ -123,9 +123,21 @@
   min-width: 44px;
 }
 
+.map-device.absolute {
+  position: absolute;
+  z-index: 5;
+  cursor: grab;
+  user-select: none;
+}
+
+.map-device.absolute:active {
+  cursor: grabbing;
+}
+
 .map-device:hover {
   background: rgba(255, 255, 255, 0.9);
   transform: scale(1.05);
+  z-index: 6;
 }
 
 .map-device.active {

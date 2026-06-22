@@ -35,16 +35,23 @@ export default function HouseMapCanvas({
   onDeviceClick,
   onRoomDrag,
   onRoomResize,
+  onRoomDragEnd,
+  onRoomResizeEnd,
+  onDeviceDrag,
+  onDeviceDragEnd,
   editable = false,
   readOnly = false,
 }) {
   const canvasRef = useRef(null);
   const [dragging, setDragging] = useState(null);
   const [resizing, setResizing] = useState(null);
+  const [draggingDevice, setDraggingDevice] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [deviceOffset, setDeviceOffset] = useState({ x: 0, y: 0 });
 
   const snapToGrid = (val) => Math.round(val / 20) * 20;
 
+  // Handle room interaction
   const handleMouseDown = useCallback((e, room, type = 'drag') => {
     if (readOnly || !editable) return;
     e.stopPropagation();
@@ -61,8 +68,36 @@ export default function HouseMapCanvas({
     }
   }, [readOnly, editable]);
 
+  // Handle device dragging interaction
+  const handleDeviceMouseDown = useCallback((e, device, room) => {
+    if (readOnly || !editable) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const rect = canvasRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    // Use current positions or defaults
+    const devX = device.position_x || 10;
+    const devY = device.position_y || 10;
+
+    setDraggingDevice({
+      id: device.id,
+      roomId: room.id,
+    });
+
+    // Offset of cursor relative to device top-left (on canvas coordinates)
+    const deviceCanvasX = room.position_x + devX;
+    const deviceCanvasY = room.position_y + devY;
+
+    setDeviceOffset({
+      x: mouseX - deviceCanvasX,
+      y: mouseY - deviceCanvasY,
+    });
+  }, [readOnly, editable]);
+
   const handleMouseMove = useCallback((e) => {
-    if (!dragging && !resizing) return;
+    if (!dragging && !resizing && !draggingDevice) return;
     const rect = canvasRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -76,17 +111,65 @@ export default function HouseMapCanvas({
     if (resizing) {
       const room = rooms.find((r) => r.id === resizing);
       if (room) {
-        const w = snapToGrid(Math.max(80, mouseX - room.position_x - offset.x + room.width));
-        const h = snapToGrid(Math.max(80, mouseY - room.position_y - offset.y + room.height));
+        const w = snapToGrid(Math.max(100, mouseX - room.position_x - offset.x + room.width));
+        const h = snapToGrid(Math.max(100, mouseY - room.position_y - offset.y + room.height));
         onRoomResize?.(resizing, w, h);
       }
     }
-  }, [dragging, resizing, offset, rooms, onRoomDrag, onRoomResize]);
+
+    if (draggingDevice) {
+      const room = rooms.find((r) => r.id === draggingDevice.roomId);
+      if (room) {
+        const devCanvasX = mouseX - deviceOffset.x;
+        const devCanvasY = mouseY - deviceOffset.y;
+
+        // Position relative to the room top-left corner
+        let relativeX = devCanvasX - room.position_x;
+        let relativeY = devCanvasY - room.position_y;
+
+        // Constraint boundaries (keep device inside room)
+        const deviceWidth = 60;
+        const deviceHeight = 44;
+        relativeX = Math.max(5, Math.min(room.width - deviceWidth - 5, relativeX));
+        relativeY = Math.max(25, Math.min(room.height - deviceHeight - 5, relativeY)); // Leave space at top for label
+
+        // 5px step snapping
+        relativeX = Math.round(relativeX / 5) * 5;
+        relativeY = Math.round(relativeY / 5) * 5;
+
+        onDeviceDrag?.(draggingDevice.id, room.id, relativeX, relativeY);
+      }
+    }
+  }, [dragging, resizing, draggingDevice, offset, deviceOffset, rooms, onRoomDrag, onRoomResize, onDeviceDrag]);
 
   const handleMouseUp = useCallback(() => {
+    if (dragging) {
+      const room = rooms.find((r) => r.id === dragging);
+      if (room) onRoomDragEnd?.(dragging, room.position_x, room.position_y);
+    }
+    if (resizing) {
+      const room = rooms.find((r) => r.id === resizing);
+      if (room) onRoomResizeEnd?.(resizing, room.width, room.height);
+    }
+    if (draggingDevice) {
+      const room = rooms.find((r) => r.id === draggingDevice.roomId);
+      const device = room?.devices?.find((d) => d.id === draggingDevice.id);
+      if (device) {
+        onDeviceDragEnd?.(device.id, device.position_x || 10, device.position_y || 10);
+      }
+    }
     setDragging(null);
     setResizing(null);
-  }, []);
+    setDraggingDevice(null);
+  }, [dragging, resizing, draggingDevice, rooms, onRoomDragEnd, onRoomResizeEnd, onDeviceDragEnd]);
+
+  const handleRoomClick = useCallback((e, room) => {
+    // Calculate click coordinates relative to the room
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = Math.round((e.clientX - rect.left) / 5) * 5;
+    const clickY = Math.round((e.clientY - rect.top) / 5) * 5;
+    onRoomClick?.(room, clickX, clickY);
+  }, [onRoomClick]);
 
   return (
     <div
@@ -117,9 +200,18 @@ export default function HouseMapCanvas({
             width: room.width,
             height: room.height,
             background: ROOM_COLORS[room.type] || room.color || '#e0f2fe',
+            position: 'absolute',
           }}
-          onMouseDown={(e) => handleMouseDown(e, room)}
-          onClick={() => onRoomClick?.(room)}
+          onMouseDown={(e) => {
+            // Avoid room dragging when clicking interactive child elements
+            if (e.target.closest('.map-device') || e.target.closest('.map-room-resize')) return;
+            handleMouseDown(e, room);
+          }}
+          onClick={(e) => {
+            // Only trigger click on the room body itself
+            if (e.target.closest('.map-device') || e.target.closest('.map-room-resize')) return;
+            handleRoomClick(e, room);
+          }}
         >
           {/* Room label */}
           <div className="map-room-label">
@@ -136,29 +228,41 @@ export default function HouseMapCanvas({
           ))}
 
           {/* Device icons */}
-          <div className="map-devices">
-            {room.devices?.map((device) => {
-              const info = DEVICE_ICONS[device.type] || DEVICE_ICONS.other;
-              return (
-                <button
-                  key={device.id}
-                  className={`map-device ${device.is_on ? 'active' : ''} ${device.type === 'fan' && device.is_on ? 'spinning' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeviceClick?.(device, room);
-                  }}
-                  title={`${device.name}: ${device.is_on ? 'ON' : 'OFF'}${device.value ? ` (${device.value}${device.unit || ''})` : ''}`}
-                  style={device.is_on ? { '--active-color': info.activeColor } : {}}
-                >
-                  <span className="map-device-icon">{info.icon}</span>
-                  <span className="map-device-name">{device.name}</span>
-                  {['temperature', 'humidity', 'gas'].includes(device.type) && (
-                    <span className="map-device-value">{device.value}{device.unit}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          {room.devices?.map((device, idx) => {
+            const info = DEVICE_ICONS[device.type] || DEVICE_ICONS.other;
+            
+            // Layout logic if coordinates are not set
+            let x = device.position_x;
+            let y = device.position_y;
+            if (x === undefined || y === undefined || (x === 0 && y === 0)) {
+              x = 10 + (idx * 50) % (room.width - 60);
+              y = 35 + Math.floor(idx / 2) * 50;
+            }
+
+            return (
+              <button
+                key={device.id}
+                className={`map-device absolute ${device.is_on ? 'active' : ''} ${device.type === 'fan' && device.is_on ? 'spinning' : ''}`}
+                onMouseDown={(e) => handleDeviceMouseDown(e, device, room)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeviceClick?.(device, room);
+                }}
+                title={`${device.name}: ${device.is_on ? 'ON' : 'OFF'}${device.value !== undefined && device.value !== null ? ` (${device.value}${device.unit || ''})` : ''}`}
+                style={{
+                  left: `${x}px`,
+                  top: `${y}px`,
+                  ...(device.is_on ? { '--active-color': info.activeColor } : {}),
+                }}
+              >
+                <span className="map-device-icon">{info.icon}</span>
+                <span className="map-device-name">{device.name}</span>
+                {['temperature', 'humidity', 'gas'].includes(device.type) && (
+                  <span className="map-device-value">{device.value}{device.unit}</span>
+                )}
+              </button>
+            );
+          })}
 
           {/* Resize handle */}
           {editable && (
