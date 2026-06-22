@@ -121,3 +121,25 @@
     display: none;
   }
 }
+
+/* Setup Wizard Split Layout */
+.setup-wizard-container {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.setup-wizard-sidebar {
+  min-width: 0;
+}
+
+.setup-wizard-preview {
+  min-width: 0;
+}
+
+@media (max-width: 1024px) {
+  .setup-wizard-container {
+    grid-template-columns: 1fr;
+  }
+}
